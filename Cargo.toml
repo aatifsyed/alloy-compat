@@ -2,5 +2,16 @@
 name = "alloy-compat"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/alloy-compat"
+repository = "https://github.com/aatifsyed/alloy-compat"
+homepage = "https://crates.io/crates/alloy-compat"
+description = "conversions between `ethereum_types` and `alloy_primitives`"
+
+[features]
+default = ["std"]
+std = []
 
 [dependencies]
+alloy-primitives = { version = "0.8.0", default-features = false }
+ethereum-types = { version = "0.14.1", default-features = false }
