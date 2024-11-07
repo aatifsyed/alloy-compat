@@ -116,19 +116,32 @@ mod sealed {
             alloy_primitives::Address(FixedBytes(bytes))
         }
     }
+
+    impl Compat<ethereum_types::Bloom> for alloy_primitives::Bloom {
+        fn compat(self) -> ethereum_types::Bloom {
+            let alloy_primitives::Bloom(alloy_primitives::FixedBytes(src)) = self;
+            ethereum_types::Bloom(src)
+        }
+    }
+    impl Compat<alloy_primitives::Bloom> for ethereum_types::Bloom {
+        fn compat(self) -> alloy_primitives::Bloom {
+            let ethereum_types::Bloom(src) = self;
+            alloy_primitives::Bloom(alloy_primitives::FixedBytes(src))
+        }
+    }
 }
 
 #[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
 
-    use alloy_primitives as alloy;
+    use alloy_primitives::{self as alloy, fixed_bytes};
     use ethereum_types as eth;
 
     #[test]
     fn address() {
         let alloy = alloy::address!("deadbeefdeadbeefdeadbeefdeadbeef00000000");
-        assert_eq!(format!("{alloy:X}"), format!("{:X}", alloy.compat()));
+        assert_eq!(format!("{alloy:x}"), format!("{:x}", alloy.compat()));
         assert_eq!(alloy, alloy.compat().compat::<alloy::Address>());
     }
 
@@ -138,5 +151,23 @@ mod tests {
         let eth = eth::U128::MAX - eth::U128::from(1);
         assert_eq!(alloy, eth.compat());
         assert_eq!(eth, alloy.compat());
+    }
+
+    #[test]
+    fn bloom() {
+        const CHUNK: usize = 8;
+        let mut alloy = fixed_bytes!();
+        for chunk in alloy.chunks_exact_mut(CHUNK) {
+            chunk.copy_from_slice(b"deadbeef");
+        }
+        alloy
+            .last_chunk_mut::<CHUNK>()
+            .unwrap()
+            .copy_from_slice(b"f0000000");
+        let alloy = alloy::Bloom(alloy);
+        assert_eq!(
+            serde_json::to_value(alloy).unwrap(),
+            serde_json::to_value(alloy.compat()).unwrap()
+        );
     }
 }
