@@ -88,8 +88,7 @@ mod sealed {
                 $(#[$meta])*
                 impl Compat<$alloy> for $eth {
                     fn compat(self) -> $alloy {
-                        let mut bytes = [0u8; {<$alloy>::BYTES}];
-                        self.to_little_endian(&mut bytes);
+                        let bytes = self.to_little_endian();
                         <$alloy>::from_le_bytes(bytes)
                     }
                 }
